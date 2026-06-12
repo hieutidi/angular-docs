@@ -83,4 +83,72 @@ export class TodoItemComponent {
   ],
   practice:
     'Tạo TodoItemComponent nhận todo qua input(), emit sự kiện toggle/delete qua output(). Ghép vào TodoListComponent cha. Thêm @if hiển thị badge "Hoàn thành" khi todo.done === true.',
+  codeExercises: [
+    {
+      id: 'components-lab-1',
+      title: 'Lab 1: Standalone Hello Component',
+      instructions:
+        'Hoàn thiện component standalone hiển thị lời chào. Cần có @Component, selector app-hello và template dùng interpolation.',
+      starterCode: `import { Component } from '@angular/core';
+
+// TODO: thêm @Component với selector 'app-hello', standalone: true
+export class HelloComponent {
+  readonly name = 'Angular';
+}
+
+// Template gợi ý: <h1>Xin chào, {{ name }}!</h1>`,
+      language: 'typescript',
+      checks: [
+        { id: 'c1', description: 'Có decorator @Component', pattern: '@Component' },
+        { id: 'c2', description: "Selector là 'app-hello'", pattern: "selector\\s*:\\s*['\"]app-hello['\"]" },
+        { id: 'c3', description: 'Khai báo standalone: true', pattern: 'standalone\\s*:\\s*true' },
+      ],
+      hints: [
+        'Decorator @Component nhận object config: selector, standalone, template.',
+        'Template có thể viết inline trong thuộc tính template: `...`',
+      ],
+    },
+    {
+      id: 'components-lab-2',
+      title: 'Lab 2: TodoItem với input() và output()',
+      instructions:
+        'Viết TodoItemComponent nhận todo qua input.required(), phát sự kiện toggle qua output().',
+      starterCode: `import { Component, input, output } from '@angular/core';
+
+interface Todo {
+  id: string;
+  title: string;
+  done: boolean;
+}
+
+@Component({
+  selector: 'app-todo-item',
+  standalone: true,
+  template: \`
+    <li>
+      <span>{{ todo().title }}</span>
+      <button type="button" (click)="onToggle()">Toggle</button>
+    </li>
+  \`,
+})
+export class TodoItemComponent {
+  // TODO: khai báo todo = input.required<Todo>()
+  // TODO: khai báo toggle = output<string>()
+
+  onToggle(): void {
+    // TODO: emit id của todo
+  }
+}`,
+      language: 'typescript',
+      checks: [
+        { id: 'c1', description: 'Dùng input.required cho todo', pattern: 'input\\.required' },
+        { id: 'c2', description: 'Khai báo output toggle', pattern: 'output\\s*<' },
+        { id: 'c3', description: 'Gọi toggle.emit trong onToggle', pattern: 'toggle\\.emit' },
+      ],
+      hints: [
+        'input.required<Todo>() trả về signal — gọi todo() trong class.',
+        'output<string>() tạo EventEmitter — dùng this.toggle.emit(this.todo().id).',
+      ],
+    },
+  ],
 };

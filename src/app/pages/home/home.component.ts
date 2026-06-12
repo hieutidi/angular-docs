@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ANGULAR_ROADMAP } from '../../data/roadmap.data';
+import { RoadmapTrack, TRACKS } from '../../models/track.model';
 import { ProgressService } from '../../services/progress.service';
+import { RoadmapService } from '../../services/roadmap.service';
 
 const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow: string }> = {
   emerald: {
@@ -40,6 +41,12 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
     text: 'text-cyan-400',
     glow: 'shadow-cyan-500/10',
   },
+  indigo: {
+    border: 'border-indigo-500/30',
+    bg: 'from-indigo-500/10',
+    text: 'text-indigo-400',
+    glow: 'shadow-indigo-500/10',
+  },
 };
 
 @Component({
@@ -48,37 +55,39 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
   template: `
     <section class="relative overflow-hidden">
       <div
-        class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/20 via-slate-950 to-slate-950"
+        class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))]"
+        [class]="heroGradient()"
       ></div>
       <div class="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <div class="mb-10 text-center">
           <p
             class="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1 text-xs text-slate-400"
           >
-            <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-            {{ roadmap.totalWeeks }} tuần · {{ progress.totalTopics }} chủ đề
+            <span class="h-1.5 w-1.5 rounded-full" [class]="accentDot()"></span>
+            {{ roadmap().totalWeeks }} tuần · {{ totalTopics() }} chủ đề
           </p>
           <h1 class="mb-4 text-3xl font-bold tracking-tight text-white sm:text-5xl">
-            {{ roadmap.title }}
+            {{ roadmap().title }}
           </h1>
           <p class="mx-auto max-w-2xl text-base text-slate-400 sm:text-lg">
-            {{ roadmap.description }}
+            {{ roadmap().description }}
           </p>
 
           <div class="mx-auto mt-8 max-w-md">
             <div class="mb-2 flex justify-between text-sm">
               <span class="text-slate-400">Tiến độ tổng</span>
               <span class="font-medium text-white"
-                >{{ progress.completedCount() }}/{{ progress.totalTopics }} chủ đề</span
+                >{{ progress.completedCount(track()) }}/{{ totalTopics() }} chủ đề</span
               >
             </div>
             <div class="h-3 overflow-hidden rounded-full bg-slate-800">
               <div
-                class="h-full rounded-full bg-gradient-to-r from-red-500 via-fuchsia-500 to-violet-500 transition-all duration-700"
-                [style.width.%]="progress.overallProgress()"
+                class="h-full rounded-full bg-gradient-to-r transition-all duration-700"
+                [class]="progressBar()"
+                [style.width.%]="progress.overallProgress(track())"
               ></div>
             </div>
-            @if (progress.completedCount() > 0) {
+            @if (progress.completedCount(track()) > 0) {
               <button
                 type="button"
                 (click)="resetProgress()"
@@ -91,12 +100,15 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
         </div>
 
         <div class="relative">
-          <div class="absolute left-6 top-0 hidden h-full w-px bg-gradient-to-b from-red-500/50 via-violet-500/30 to-transparent sm:block"></div>
+          <div
+            class="absolute left-6 top-0 hidden h-full w-px bg-gradient-to-b sm:block"
+            [class]="timelineGradient()"
+          ></div>
 
           <div class="space-y-6">
-            @for (phase of roadmap.phases; track phase.id) {
+            @for (phase of roadmap().phases; track phase.id) {
               <a
-                [routerLink]="['/phase', phase.id]"
+                [routerLink]="['/', track(), 'phase', phase.id]"
                 class="group relative block rounded-2xl border bg-gradient-to-br to-transparent p-5 transition hover:scale-[1.01] sm:ml-12 sm:p-6"
                 [class]="phaseColor(phase.color).border + ' ' + phaseColor(phase.color).bg + ' shadow-lg ' + phaseColor(phase.color).glow"
               >
@@ -113,7 +125,7 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
                       <p class="mb-0.5 text-xs font-medium uppercase tracking-wider" [class]="phaseColor(phase.color).text">
                         Giai đoạn {{ phase.order }} · {{ phase.subtitle }}
                       </p>
-                      <h2 class="text-xl font-semibold text-white group-hover:text-red-300 transition-colors">
+                      <h2 class="text-xl font-semibold text-white transition-colors" [class]="phaseHover()">
                         {{ phase.title }}
                       </h2>
                       <p class="mt-1 text-sm text-slate-400">{{ phase.description }}</p>
@@ -130,7 +142,8 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
                     </div>
                     <div class="h-2 w-24 overflow-hidden rounded-full bg-slate-800">
                       <div
-                        class="h-full rounded-full bg-gradient-to-r from-red-500 to-violet-500 transition-all"
+                        class="h-full rounded-full bg-gradient-to-r transition-all"
+                        [class]="progressBar()"
                         [style.width.%]="phaseProgress(phase.id)"
                       ></div>
                     </div>
@@ -145,10 +158,12 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
         <div class="mt-12 rounded-2xl border border-slate-800 bg-slate-900/50 p-6 text-center">
           <h3 class="mb-2 text-lg font-semibold text-white">Mẹo học hiệu quả</h3>
           <ul class="mx-auto max-w-xl space-y-2 text-left text-sm text-slate-400">
-            <li class="flex gap-2"><span class="text-red-400">1.</span> Code mỗi ngày — ít nhất 1 giờ, dù chỉ là refactor nhỏ.</li>
-            <li class="flex gap-2"><span class="text-red-400">2.</span> Làm dự án mini sau mỗi giai đoạn, đừng chỉ đọc lý thuyết.</li>
-            <li class="flex gap-2"><span class="text-red-400">3.</span> Đọc docs chính thức tại angular.dev — luôn cập nhật nhất.</li>
-            <li class="flex gap-2"><span class="text-red-400">4.</span> Đánh dấu chủ đề đã học để theo dõi tiến độ của bạn.</li>
+            @for (tip of studyTips(); track $index) {
+              <li class="flex gap-2">
+                <span [class]="tipAccent()">{{ $index + 1 }}.</span>
+                {{ tip }}
+              </li>
+            }
           </ul>
         </div>
       </div>
@@ -156,20 +171,74 @@ const COLOR_MAP: Record<string, { border: string; bg: string; text: string; glow
   `,
 })
 export class HomeComponent {
-  protected readonly roadmap = ANGULAR_ROADMAP;
+  readonly track = input.required<RoadmapTrack>();
+
+  private readonly roadmaps = inject(RoadmapService);
   protected readonly progress = inject(ProgressService);
 
+  protected readonly roadmap = computed(() => this.roadmaps.getRoadmap(this.track()));
+  protected readonly trackInfo = computed(() => TRACKS[this.track()]);
+
+  protected totalTopics(): number {
+    return this.roadmaps.totalTopics(this.track());
+  }
+
   protected phaseColor(color: string) {
-    return COLOR_MAP[color] ?? COLOR_MAP['red'];
+    return COLOR_MAP[color] ?? COLOR_MAP['violet'];
   }
 
   protected phaseProgress(phaseId: string): number {
-    return this.progress.phaseProgress(phaseId);
+    return this.progress.phaseProgress(this.track(), phaseId);
   }
 
   protected resetProgress(): void {
-    if (confirm('Bạn có chắc muốn đặt lại toàn bộ tiến độ?')) {
-      this.progress.resetProgress();
+    if (confirm('Bạn có chắc muốn đặt lại tiến độ lộ trình này?')) {
+      this.progress.resetProgress(this.track());
     }
+  }
+
+  protected heroGradient(): string {
+    return this.track() === 'dotnet'
+      ? 'from-violet-900/20 via-slate-950 to-slate-950'
+      : 'from-red-900/20 via-slate-950 to-slate-950';
+  }
+
+  protected timelineGradient(): string {
+    return this.track() === 'dotnet'
+      ? 'from-violet-500/50 via-sky-500/30 to-transparent'
+      : 'from-red-500/50 via-violet-500/30 to-transparent';
+  }
+
+  protected progressBar(): string {
+    return `${TRACKS[this.track()].accentFrom} ${TRACKS[this.track()].accentTo}`;
+  }
+
+  protected accentDot(): string {
+    return this.track() === 'dotnet' ? 'bg-violet-500' : 'bg-red-500';
+  }
+
+  protected phaseHover(): string {
+    return this.track() === 'dotnet' ? 'group-hover:text-violet-300' : 'group-hover:text-red-300';
+  }
+
+  protected tipAccent(): string {
+    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
+  }
+
+  protected studyTips(): string[] {
+    if (this.track() === 'dotnet') {
+      return [
+        'Code mỗi ngày — chạy dotnet run và test API bằng Swagger.',
+        'Làm dự án mini sau mỗi giai đoạn, đừng chỉ đọc lý thuyết.',
+        'Đọc docs chính thức tại learn.microsoft.com/dotnet.',
+        'Đánh dấu chủ đề đã học để theo dõi tiến độ của bạn.',
+      ];
+    }
+    return [
+      'Code mỗi ngày — ít nhất 1 giờ, dù chỉ là refactor nhỏ.',
+      'Làm dự án mini sau mỗi giai đoạn, đừng chỉ đọc lý thuyết.',
+      'Đọc docs chính thức tại angular.dev — luôn cập nhật nhất.',
+      'Đánh dấu chủ đề đã học để theo dõi tiến độ của bạn.',
+    ];
   }
 }

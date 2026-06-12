@@ -1,83 +1,155 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { ANGULAR_ROADMAP } from '../data/roadmap.data';
+import { Injectable, signal } from '@angular/core';
+import { RoadmapTrack } from '../models/track.model';
+import { RoadmapService } from './roadmap.service';
 
-const STORAGE_KEY = 'angular-roadmap-progress';
-const QUIZ_STORAGE_KEY = 'angular-roadmap-quizzes';
+const STORAGE_KEY = 'dev-roadmap-progress';
+const QUIZ_STORAGE_KEY = 'dev-roadmap-quizzes';
+const CODE_STORAGE_KEY = 'dev-roadmap-code-labs';
+const LEGACY_PROGRESS_KEY = 'angular-roadmap-progress';
+const LEGACY_QUIZ_KEY = 'angular-roadmap-quizzes';
+
+type ProgressStore = Record<RoadmapTrack, string[]>;
 
 @Injectable({ providedIn: 'root' })
 export class ProgressService {
-  private readonly completedTopics = signal<Set<string>>(this.loadFromStorage(STORAGE_KEY));
-  private readonly passedQuizzes = signal<Set<string>>(this.loadFromStorage(QUIZ_STORAGE_KEY));
+  private readonly completedByTrack = signal<ProgressStore>(this.loadProgressStore());
+  private readonly quizzesByTrack = signal<ProgressStore>(this.loadQuizStore());
+  private readonly codeLabsByTrack = signal<ProgressStore>(this.loadCodeLabStore());
 
-  readonly totalTopics = ANGULAR_ROADMAP.phases.reduce(
-    (sum, phase) => sum + phase.topics.length,
-    0,
-  );
+  constructor(private readonly roadmaps: RoadmapService) {}
 
-  readonly completedCount = computed(() => this.completedTopics().size);
-
-  readonly overallProgress = computed(() =>
-    this.totalTopics === 0
-      ? 0
-      : Math.round((this.completedCount() / this.totalTopics) * 100),
-  );
-
-  isCompleted(topicId: string): boolean {
-    return this.completedTopics().has(topicId);
+  totalTopics(track: RoadmapTrack): number {
+    return this.roadmaps.totalTopics(track);
   }
 
-  isQuizPassed(quizId: string): boolean {
-    return this.passedQuizzes().has(quizId);
+  completedCount(track: RoadmapTrack): number {
+    return this.completedByTrack()[track]?.length ?? 0;
   }
 
-  markQuizPassed(quizId: string): void {
-    this.passedQuizzes.update((set) => {
-      const next = new Set(set);
-      next.add(quizId);
-      this.saveToStorage(QUIZ_STORAGE_KEY, next);
+  overallProgress(track: RoadmapTrack): number {
+    const total = this.totalTopics(track);
+    if (total === 0) return 0;
+    return Math.round((this.completedCount(track) / total) * 100);
+  }
+
+  isCompleted(track: RoadmapTrack, topicId: string): boolean {
+    return this.completedByTrack()[track]?.includes(topicId) ?? false;
+  }
+
+  isQuizPassed(track: RoadmapTrack, quizId: string): boolean {
+    return this.quizzesByTrack()[track]?.includes(quizId) ?? false;
+  }
+
+  markQuizPassed(track: RoadmapTrack, quizId: string): void {
+    this.quizzesByTrack.update((store) => {
+      const next = { ...store, [track]: [...new Set([...(store[track] ?? []), quizId])] };
+      this.saveStore(QUIZ_STORAGE_KEY, next);
       return next;
     });
   }
 
-  toggleTopic(topicId: string): void {
-    this.completedTopics.update((set) => {
-      const next = new Set(set);
-      if (next.has(topicId)) {
-        next.delete(topicId);
+  isCodeLabPassed(track: RoadmapTrack, exerciseId: string): boolean {
+    return this.codeLabsByTrack()[track]?.includes(exerciseId) ?? false;
+  }
+
+  markCodeLabPassed(track: RoadmapTrack, exerciseId: string): void {
+    this.codeLabsByTrack.update((store) => {
+      const next = { ...store, [track]: [...new Set([...(store[track] ?? []), exerciseId])] };
+      this.saveStore(CODE_STORAGE_KEY, next);
+      return next;
+    });
+  }
+
+  toggleTopic(track: RoadmapTrack, topicId: string): void {
+    this.completedByTrack.update((store) => {
+      const current = new Set(store[track] ?? []);
+      if (current.has(topicId)) {
+        current.delete(topicId);
       } else {
-        next.add(topicId);
+        current.add(topicId);
       }
-      this.saveToStorage(STORAGE_KEY, next);
+      const next = { ...store, [track]: [...current] };
+      this.saveStore(STORAGE_KEY, next);
       return next;
     });
   }
 
-  phaseProgress(phaseId: string): number {
-    const phase = ANGULAR_ROADMAP.phases.find((p) => p.id === phaseId);
+  phaseProgress(track: RoadmapTrack, phaseId: string): number {
+    const phase = this.roadmaps.getRoadmap(track).phases.find((p) => p.id === phaseId);
     if (!phase || phase.topics.length === 0) return 0;
-    const done = phase.topics.filter((t) => this.isCompleted(t.id)).length;
+    const done = phase.topics.filter((t) => this.isCompleted(track, t.id)).length;
     return Math.round((done / phase.topics.length) * 100);
   }
 
-  resetProgress(): void {
-    this.completedTopics.set(new Set());
-    this.passedQuizzes.set(new Set());
+  resetProgress(track?: RoadmapTrack): void {
+    if (track) {
+      this.completedByTrack.update((store) => {
+        const next = { ...store, [track]: [] };
+        this.saveStore(STORAGE_KEY, next);
+        return next;
+      });
+      this.quizzesByTrack.update((store) => {
+        const next = { ...store, [track]: [] };
+        this.saveStore(QUIZ_STORAGE_KEY, next);
+        return next;
+      });
+      this.codeLabsByTrack.update((store) => {
+        const next = { ...store, [track]: [] };
+        this.saveStore(CODE_STORAGE_KEY, next);
+        return next;
+      });
+      return;
+    }
+
+    this.completedByTrack.set({ angular: [], dotnet: [], docs: [] });
+    this.quizzesByTrack.set({ angular: [], dotnet: [], docs: [] });
+    this.codeLabsByTrack.set({ angular: [], dotnet: [], docs: [] });
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(QUIZ_STORAGE_KEY);
+    localStorage.removeItem(CODE_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_PROGRESS_KEY);
+    localStorage.removeItem(LEGACY_QUIZ_KEY);
   }
 
-  private loadFromStorage(key: string): Set<string> {
+  private loadProgressStore(): ProgressStore {
+    return this.loadStore(STORAGE_KEY, LEGACY_PROGRESS_KEY);
+  }
+
+  private loadQuizStore(): ProgressStore {
+    return this.loadStore(QUIZ_STORAGE_KEY, LEGACY_QUIZ_KEY);
+  }
+
+  private loadCodeLabStore(): ProgressStore {
+    return this.loadStore(CODE_STORAGE_KEY, '');
+  }
+
+  private loadStore(key: string, legacyKey: string): ProgressStore {
+    const empty: ProgressStore = { angular: [], dotnet: [], docs: [] };
     try {
       const raw = localStorage.getItem(key);
-      if (!raw) return new Set();
-      const ids: string[] = JSON.parse(raw);
-      return new Set(ids);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<ProgressStore>;
+        return {
+          angular: parsed.angular ?? [],
+          dotnet: parsed.dotnet ?? [],
+          docs: parsed.docs ?? [],
+        };
+      }
+
+      if (legacyKey) {
+        const legacy = localStorage.getItem(legacyKey);
+        if (legacy) {
+          const ids: string[] = JSON.parse(legacy);
+          return { ...empty, angular: ids };
+        }
+      }
     } catch {
-      return new Set();
+      return empty;
     }
+    return empty;
   }
 
-  private saveToStorage(key: string, set: Set<string>): void {
-    localStorage.setItem(key, JSON.stringify([...set]));
+  private saveStore(key: string, store: ProgressStore): void {
+    localStorage.setItem(key, JSON.stringify(store));
   }
 }

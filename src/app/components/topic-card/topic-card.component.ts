@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { RoadmapTrack } from '../../models/track.model';
 import { Topic } from '../../models/roadmap.model';
 
 const LEVEL_LABELS: Record<Topic['level'], string> = {
@@ -46,16 +47,20 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
         <div class="min-w-0 flex-1">
           <div class="mb-1 flex flex-wrap items-center gap-2">
             <a
-              [routerLink]="['/phase', phaseId(), 'topic', topic().id]"
-              class="font-medium text-white transition hover:text-red-400"
+              [routerLink]="['/', track(), 'phase', phaseId(), 'topic', topic().id]"
+              class="font-medium text-white transition"
+              [class]="linkHover()"
               [class.line-through]="completed()"
               [class.text-slate-500]="completed()"
             >
               {{ topic().title }}
             </a>
-            @if (topic().id === 'components') {
-              <span class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium text-violet-400">
-                1 bài + 3 quiz
+            @if (featured()) {
+              <span
+                class="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                [class]="featuredBadge()"
+              >
+                {{ featuredLabel() }}
               </span>
             }
             <span
@@ -69,8 +74,9 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
           <p class="text-sm leading-relaxed text-slate-400">{{ topic().description }}</p>
 
           <a
-            [routerLink]="['/phase', phaseId(), 'topic', topic().id]"
-            class="mt-2 inline-flex text-xs text-red-400 hover:underline"
+            [routerLink]="['/', track(), 'phase', phaseId(), 'topic', topic().id]"
+            class="mt-2 inline-flex text-xs hover:underline"
+            [class]="linkAccent()"
           >
             Đọc tài liệu →
           </a>
@@ -97,8 +103,10 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
 })
 export class TopicCardComponent {
   readonly topic = input.required<Topic>();
+  readonly track = input.required<RoadmapTrack>();
   readonly phaseId = input.required<string>();
   readonly completed = input(false);
+  readonly featured = input(false);
   readonly toggle = output<void>();
 
   protected levelLabel(): string {
@@ -107,5 +115,33 @@ export class TopicCardComponent {
 
   protected levelStyle(): string {
     return LEVEL_STYLES[this.topic().level];
+  }
+
+  protected linkHover(): string {
+    return this.track() === 'dotnet' ? 'hover:text-violet-400' : 'hover:text-red-400';
+  }
+
+  protected linkAccent(): string {
+    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
+  }
+
+  protected featuredBadge(): string {
+    if (
+      (this.track() === 'angular' && this.topic().id === 'components') ||
+      (this.track() === 'dotnet' && this.topic().id === 'webapi-basics')
+    ) {
+      return 'bg-violet-500/15 text-violet-400';
+    }
+    return 'bg-sky-500/15 text-sky-400';
+  }
+
+  protected featuredLabel(): string {
+    if (
+      (this.track() === 'angular' && this.topic().id === 'components') ||
+      (this.track() === 'dotnet' && this.topic().id === 'webapi-basics')
+    ) {
+      return 'IDE + quiz';
+    }
+    return 'bài học chi tiết';
   }
 }

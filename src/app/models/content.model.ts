@@ -5,12 +5,32 @@ export interface DocSection {
   code?: string;
 }
 
+export type CodeLanguage = 'typescript' | 'csharp' | 'sql' | 'shell';
+
+export interface CodeCheck {
+  id: string;
+  description: string;
+  pattern: string;
+  flags?: string;
+}
+
+export interface CodeExercise {
+  id: string;
+  title: string;
+  instructions: string;
+  starterCode: string;
+  language: CodeLanguage;
+  checks: CodeCheck[];
+  hints?: string[];
+}
+
 export interface TopicLesson {
   topicId: string;
   summary: string;
   objectives: string[];
   sections: DocSection[];
   practice?: string;
+  codeExercises?: CodeExercise[];
 }
 
 export interface QuizOption {

@@ -1,18 +1,20 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CodeLabComponent } from '../../components/code-lab/code-lab.component';
 import { DocViewerComponent } from '../../components/doc-viewer/doc-viewer.component';
 import { QuizRunnerComponent } from '../../components/quiz-runner/quiz-runner.component';
-import { ContentService } from '../../services/content.service';
+import { RoadmapTrack } from '../../models/track.model';
 import { ProgressService } from '../../services/progress.service';
+import { RoadmapService } from '../../services/roadmap.service';
 
 @Component({
   selector: 'app-topic-detail',
-  imports: [RouterLink, DocViewerComponent, QuizRunnerComponent],
+  imports: [RouterLink, DocViewerComponent, CodeLabComponent, QuizRunnerComponent],
   template: `
     @if (context(); as ctx) {
       <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         <a
-          [routerLink]="['/phase', ctx.phase.id]"
+          [routerLink]="['/', track(), 'phase', ctx.phase.id]"
           class="mb-6 inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
         >
           ← Quay lại {{ ctx.phase.title }}
@@ -44,9 +46,19 @@ import { ProgressService } from '../../services/progress.service';
         @if (lesson(); as doc) {
           <div class="mb-4 flex items-center gap-2">
             <span class="text-sm font-medium text-white">Nội dung bài học</span>
+            @if (codeExercises().length > 0) {
+              <span class="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-sky-400">
+                + IDE thực hành
+              </span>
+            }
             @if (quizzes()) {
               <span class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-violet-400">
-                + 3 quiz mẫu
+                + 3 quiz
+              </span>
+            }
+            @if (featuredLesson() && !quizzes()) {
+              <span class="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-sky-400">
+                bài học chi tiết
               </span>
             }
           </div>
@@ -55,6 +67,24 @@ import { ProgressService } from '../../services/progress.service';
           <p class="rounded-xl border border-slate-800 bg-slate-900/50 p-5 text-sm text-slate-400">
             Tài liệu cho chủ đề này đang được cập nhật.
           </p>
+        }
+
+        @if (codeExercises().length > 0) {
+          <div class="mt-10">
+            <h2 class="mb-2 text-xl font-semibold text-white">💻 Thực hành viết code</h2>
+            <p class="mb-6 text-sm text-slate-400">
+              Viết code trong IDE, bấm "Kiểm tra code" để hệ thống chấm tự động theo từng tiêu chí.
+            </p>
+            <div class="space-y-6">
+              @for (ex of codeExercises(); track ex.id) {
+                <app-code-lab
+                  [exercise]="ex"
+                  [completed]="progress.isCodeLabPassed(track(), ex.id)"
+                  (passedChange)="onCodeLabPassed(ex.id)"
+                />
+              }
+            </div>
+          </div>
         }
 
         @if (quizzes(); as qz) {
@@ -68,15 +98,17 @@ import { ProgressService } from '../../services/progress.service';
               @for (quiz of qz.lessons; track quiz.id) {
                 <app-quiz-runner
                   [quiz]="quiz"
-                  [completed]="progress.isQuizPassed(quiz.id)"
+                  [completed]="progress.isQuizPassed(track(), quiz.id)"
                   (passedChange)="onQuizPassed(quiz.id)"
                 />
               }
             </div>
 
-            @if (allQuizzesPassed()) {
+            @if (allQuizzesPassed() && allCodeLabsPassed()) {
               <div class="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
-                <p class="font-medium text-emerald-400">Chúc mừng! Bạn đã hoàn thành cả 3 quiz.</p>
+                <p class="font-medium text-emerald-400">
+                  Chúc mừng! Bạn đã hoàn thành quiz và bài thực hành code.
+                </p>
                 <button
                   type="button"
                   (click)="markTopicComplete()"
@@ -92,11 +124,26 @@ import { ProgressService } from '../../services/progress.service';
         @if (!quizzes()) {
           <div class="mt-8 rounded-xl border border-dashed border-slate-700 p-5 text-center">
             <p class="text-sm text-slate-500">
-              Chủ đề này có tài liệu tóm tắt. Ví dụ đầy đủ <strong class="text-slate-300">1 nội dung + 3 quiz</strong>
-              xem tại
-              <a routerLink="/phase/angular-basics/topic/components" class="text-red-400 hover:underline">
-                Components & Templates
-              </a>.
+              Chủ đề này có tài liệu tóm tắt. Ví dụ bài học chi tiết
+              @if (track() === 'angular') {
+                xem tại
+                <a
+                  routerLink="/angular/phase/angular-basics/topic/components"
+                  class="text-red-400 hover:underline"
+                >
+                  Components & Templates
+                </a>
+                (kèm IDE + 3 quiz).
+              } @else {
+                xem tại
+                <a
+                  routerLink="/dotnet/phase/aspnet-core/topic/webapi-basics"
+                  class="text-violet-400 hover:underline"
+                >
+                  Web API & Controllers
+                </a>
+                (kèm IDE + 3 quiz).
+              }
             </p>
           </div>
         }
@@ -104,46 +151,71 @@ import { ProgressService } from '../../services/progress.service';
     } @else {
       <section class="mx-auto max-w-3xl px-4 py-16 text-center">
         <p class="text-slate-400">Không tìm thấy chủ đề.</p>
-        <a routerLink="/" class="mt-4 inline-block text-red-400 hover:underline">← Về trang chủ</a>
+        <a [routerLink]="['/', track()]" class="mt-4 inline-block hover:underline" [class]="linkAccent()"
+          >← Về trang chủ</a
+        >
       </section>
     }
   `,
 })
 export class TopicDetailComponent {
+  readonly track = input.required<RoadmapTrack>();
   readonly phaseId = input.required<string>();
   readonly topicId = input.required<string>();
 
-  private readonly content = inject(ContentService);
+  private readonly roadmaps = inject(RoadmapService);
   protected readonly progress = inject(ProgressService);
 
-  protected readonly context = computed(() =>
-    this.content.findTopic(this.phaseId(), this.topicId()),
-  );
+  protected readonly context = computed(() => {
+    if (!this.roadmaps.isValidTrack(this.track())) return undefined;
+    return this.roadmaps.findTopic(this.track(), this.phaseId(), this.topicId());
+  });
 
   protected readonly lesson = computed(() => {
     const ctx = this.context();
-    return ctx ? this.content.getTopicLesson(ctx.topic.id) : undefined;
+    return ctx ? this.roadmaps.getTopicLesson(this.track(), ctx.topic.id) : undefined;
+  });
+
+  protected readonly featuredLesson = computed(() => {
+    const ctx = this.context();
+    return ctx ? this.roadmaps.hasFeaturedLesson(this.track(), ctx.topic.id) : false;
   });
 
   protected readonly quizzes = computed(() => {
     const ctx = this.context();
-    return ctx ? this.content.getTopicQuizzes(ctx.topic.id) : undefined;
+    return ctx ? this.roadmaps.getTopicQuizzes(this.track(), ctx.topic.id) : undefined;
   });
+
+  protected readonly codeExercises = computed(() => this.lesson()?.codeExercises ?? []);
 
   protected readonly allQuizzesPassed = computed(() => {
     const qz = this.quizzes();
-    if (!qz) return false;
-    return qz.lessons.every((l) => this.progress.isQuizPassed(l.id));
+    if (!qz) return true;
+    return qz.lessons.every((l) => this.progress.isQuizPassed(this.track(), l.id));
+  });
+
+  protected readonly allCodeLabsPassed = computed(() => {
+    const labs = this.codeExercises();
+    if (labs.length === 0) return true;
+    return labs.every((ex) => this.progress.isCodeLabPassed(this.track(), ex.id));
   });
 
   protected onQuizPassed(quizId: string): void {
-    this.progress.markQuizPassed(quizId);
+    this.progress.markQuizPassed(this.track(), quizId);
+  }
+
+  protected onCodeLabPassed(exerciseId: string): void {
+    this.progress.markCodeLabPassed(this.track(), exerciseId);
   }
 
   protected markTopicComplete(): void {
     const ctx = this.context();
-    if (ctx && !this.progress.isCompleted(ctx.topic.id)) {
-      this.progress.toggleTopic(ctx.topic.id);
+    if (ctx && !this.progress.isCompleted(this.track(), ctx.topic.id)) {
+      this.progress.toggleTopic(this.track(), ctx.topic.id);
     }
+  }
+
+  protected linkAccent(): string {
+    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
   }
 }

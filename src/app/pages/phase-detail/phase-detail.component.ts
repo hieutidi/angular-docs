@@ -1,10 +1,10 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ANGULAR_ROADMAP } from '../../data/roadmap.data';
-import { ProgressService } from '../../services/progress.service';
 import { PhaseGuideComponent } from '../../components/phase-guide/phase-guide.component';
 import { TopicCardComponent } from '../../components/topic-card/topic-card.component';
-import { ContentService } from '../../services/content.service';
+import { RoadmapTrack, TRACKS } from '../../models/track.model';
+import { ProgressService } from '../../services/progress.service';
+import { RoadmapService } from '../../services/roadmap.service';
 
 @Component({
   selector: 'app-phase-detail',
@@ -13,7 +13,7 @@ import { ContentService } from '../../services/content.service';
     @if (phase(); as p) {
       <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         <a
-          routerLink="/"
+          [routerLink]="['/', track()]"
           class="mb-6 inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
         >
           ← Quay lại tổng quan
@@ -38,7 +38,8 @@ import { ContentService } from '../../services/content.service';
             </div>
             <div class="h-2.5 overflow-hidden rounded-full bg-slate-800">
               <div
-                class="h-full rounded-full bg-gradient-to-r from-red-500 to-violet-500 transition-all duration-500"
+                class="h-full rounded-full bg-gradient-to-r transition-all duration-500"
+                [class]="progressBar()"
                 [style.width.%]="phaseProgress()"
               ></div>
             </div>
@@ -54,9 +55,11 @@ import { ContentService } from '../../services/content.service';
           @for (topic of p.topics; track topic.id) {
             <app-topic-card
               [topic]="topic"
+              [track]="track()"
               [phaseId]="p.id"
-              [completed]="progress.isCompleted(topic.id)"
-              (toggle)="progress.toggleTopic(topic.id)"
+              [completed]="progress.isCompleted(track(), topic.id)"
+              [featured]="roadmaps.hasFeaturedLesson(track(), topic.id)"
+              (toggle)="progress.toggleTopic(track(), topic.id)"
             />
           }
         </div>
@@ -65,8 +68,9 @@ import { ContentService } from '../../services/content.service';
           <div class="mt-10 rounded-xl border border-dashed border-slate-700 p-5 text-center">
             <p class="mb-2 text-sm text-slate-500">Giai đoạn tiếp theo</p>
             <a
-              [routerLink]="['/phase', next.id]"
-              class="inline-flex items-center gap-2 text-lg font-medium text-white hover:text-red-400 transition"
+              [routerLink]="['/', track(), 'phase', next.id]"
+              class="inline-flex items-center gap-2 text-lg font-medium text-white transition"
+              [class]="linkHover()"
             >
               {{ next.icon }} {{ next.title }} →
             </a>
@@ -78,7 +82,8 @@ import { ContentService } from '../../services/content.service';
             <p class="text-2xl">🎉</p>
             <p class="mt-2 text-lg font-semibold text-emerald-400">Chúc mừng!</p>
             <p class="mt-1 text-sm text-slate-400">
-              Bạn đã hoàn thành toàn bộ lộ trình Angular. Hãy xây dựng portfolio và apply việc làm!
+              Bạn đã hoàn thành toàn bộ lộ trình {{ trackInfo().shortLabel }}. Hãy xây dựng portfolio
+              và apply việc làm!
             </p>
           </div>
         }
@@ -86,31 +91,53 @@ import { ContentService } from '../../services/content.service';
     } @else {
       <section class="mx-auto max-w-3xl px-4 py-16 text-center">
         <p class="text-slate-400">Không tìm thấy giai đoạn.</p>
-        <a routerLink="/" class="mt-4 inline-block text-red-400 hover:underline">← Về trang chủ</a>
+        <a [routerLink]="['/', track()]" class="mt-4 inline-block hover:underline" [class]="linkAccent()"
+          >← Về trang chủ</a
+        >
       </section>
     }
   `,
 })
 export class PhaseDetailComponent {
+  readonly track = input.required<RoadmapTrack>();
   readonly phaseId = input.required<string>();
 
-  private readonly content = inject(ContentService);
+  protected readonly roadmaps = inject(RoadmapService);
   protected readonly progress = inject(ProgressService);
 
-  protected readonly phaseGuide = computed(() => this.content.getPhaseGuide(this.phaseId()));
+  protected readonly trackInfo = computed(() => TRACKS[this.track()]);
 
-  protected readonly phase = computed(() =>
-    ANGULAR_ROADMAP.phases.find((p) => p.id === this.phaseId()),
+  protected readonly phaseGuide = computed(() =>
+    this.roadmaps.getPhaseGuide(this.track(), this.phaseId()),
   );
+
+  protected readonly phase = computed(() => {
+    if (!this.roadmaps.isValidTrack(this.track())) return undefined;
+    return this.roadmaps.getRoadmap(this.track()).phases.find((p) => p.id === this.phaseId());
+  });
 
   protected readonly phaseProgress = computed(() => {
     const p = this.phase();
-    return p ? this.progress.phaseProgress(p.id) : 0;
+    return p ? this.progress.phaseProgress(this.track(), p.id) : 0;
   });
 
   protected readonly nextPhase = computed(() => {
     const p = this.phase();
     if (!p) return null;
-    return ANGULAR_ROADMAP.phases.find((ph) => ph.order === p.order + 1) ?? null;
+    return (
+      this.roadmaps.getRoadmap(this.track()).phases.find((ph) => ph.order === p.order + 1) ?? null
+    );
   });
+
+  protected progressBar(): string {
+    return `${TRACKS[this.track()].accentFrom} ${TRACKS[this.track()].accentTo}`;
+  }
+
+  protected linkHover(): string {
+    return this.track() === 'dotnet' ? 'hover:text-violet-400' : 'hover:text-red-400';
+  }
+
+  protected linkAccent(): string {
+    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
+  }
 }
