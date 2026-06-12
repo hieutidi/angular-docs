@@ -1,4 +1,5 @@
 import { Component, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Topic } from '../../models/roadmap.model';
 
 const LEVEL_LABELS: Record<Topic['level'], string> = {
@@ -15,6 +16,7 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
 
 @Component({
   selector: 'app-topic-card',
+  imports: [RouterLink],
   template: `
     <article
       class="group rounded-xl border border-slate-800 bg-slate-900/50 p-4 transition hover:border-slate-700 hover:bg-slate-900"
@@ -43,13 +45,19 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
 
         <div class="min-w-0 flex-1">
           <div class="mb-1 flex flex-wrap items-center gap-2">
-            <h3
-              class="font-medium text-white"
+            <a
+              [routerLink]="['/phase', phaseId(), 'topic', topic().id]"
+              class="font-medium text-white transition hover:text-red-400"
               [class.line-through]="completed()"
               [class.text-slate-500]="completed()"
             >
               {{ topic().title }}
-            </h3>
+            </a>
+            @if (topic().id === 'components') {
+              <span class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium text-violet-400">
+                1 bài + 3 quiz
+              </span>
+            }
             <span
               class="rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ring-1 ring-inset"
               [class]="levelStyle()"
@@ -59,6 +67,13 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
             <span class="text-xs text-slate-500">{{ topic().duration }}</span>
           </div>
           <p class="text-sm leading-relaxed text-slate-400">{{ topic().description }}</p>
+
+          <a
+            [routerLink]="['/phase', phaseId(), 'topic', topic().id]"
+            class="mt-2 inline-flex text-xs text-red-400 hover:underline"
+          >
+            Đọc tài liệu →
+          </a>
 
           @if (topic().resources.length > 0) {
             <div class="mt-3 flex flex-wrap gap-2">
@@ -82,6 +97,7 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
 })
 export class TopicCardComponent {
   readonly topic = input.required<Topic>();
+  readonly phaseId = input.required<string>();
   readonly completed = input(false);
   readonly toggle = output<void>();
 

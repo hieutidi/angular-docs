@@ -2,11 +2,13 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ANGULAR_ROADMAP } from '../../data/roadmap.data';
 import { ProgressService } from '../../services/progress.service';
+import { PhaseGuideComponent } from '../../components/phase-guide/phase-guide.component';
 import { TopicCardComponent } from '../../components/topic-card/topic-card.component';
+import { ContentService } from '../../services/content.service';
 
 @Component({
   selector: 'app-phase-detail',
-  imports: [RouterLink, TopicCardComponent],
+  imports: [RouterLink, PhaseGuideComponent, TopicCardComponent],
   template: `
     @if (phase(); as p) {
       <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
@@ -43,10 +45,16 @@ import { TopicCardComponent } from '../../components/topic-card/topic-card.compo
           </div>
         </header>
 
+        @if (phaseGuide(); as guide) {
+          <app-phase-guide [guide]="guide" />
+        }
+
+        <h2 class="mb-4 text-lg font-semibold text-white">Chủ đề trong giai đoạn</h2>
         <div class="space-y-3">
           @for (topic of p.topics; track topic.id) {
             <app-topic-card
               [topic]="topic"
+              [phaseId]="p.id"
               [completed]="progress.isCompleted(topic.id)"
               (toggle)="progress.toggleTopic(topic.id)"
             />
@@ -86,7 +94,10 @@ import { TopicCardComponent } from '../../components/topic-card/topic-card.compo
 export class PhaseDetailComponent {
   readonly phaseId = input.required<string>();
 
+  private readonly content = inject(ContentService);
   protected readonly progress = inject(ProgressService);
+
+  protected readonly phaseGuide = computed(() => this.content.getPhaseGuide(this.phaseId()));
 
   protected readonly phase = computed(() =>
     ANGULAR_ROADMAP.phases.find((p) => p.id === this.phaseId()),

@@ -2,10 +2,12 @@ import { Injectable, computed, signal } from '@angular/core';
 import { ANGULAR_ROADMAP } from '../data/roadmap.data';
 
 const STORAGE_KEY = 'angular-roadmap-progress';
+const QUIZ_STORAGE_KEY = 'angular-roadmap-quizzes';
 
 @Injectable({ providedIn: 'root' })
 export class ProgressService {
-  private readonly completedTopics = signal<Set<string>>(this.loadFromStorage());
+  private readonly completedTopics = signal<Set<string>>(this.loadFromStorage(STORAGE_KEY));
+  private readonly passedQuizzes = signal<Set<string>>(this.loadFromStorage(QUIZ_STORAGE_KEY));
 
   readonly totalTopics = ANGULAR_ROADMAP.phases.reduce(
     (sum, phase) => sum + phase.topics.length,
@@ -24,6 +26,19 @@ export class ProgressService {
     return this.completedTopics().has(topicId);
   }
 
+  isQuizPassed(quizId: string): boolean {
+    return this.passedQuizzes().has(quizId);
+  }
+
+  markQuizPassed(quizId: string): void {
+    this.passedQuizzes.update((set) => {
+      const next = new Set(set);
+      next.add(quizId);
+      this.saveToStorage(QUIZ_STORAGE_KEY, next);
+      return next;
+    });
+  }
+
   toggleTopic(topicId: string): void {
     this.completedTopics.update((set) => {
       const next = new Set(set);
@@ -32,7 +47,7 @@ export class ProgressService {
       } else {
         next.add(topicId);
       }
-      this.saveToStorage(next);
+      this.saveToStorage(STORAGE_KEY, next);
       return next;
     });
   }
@@ -46,12 +61,14 @@ export class ProgressService {
 
   resetProgress(): void {
     this.completedTopics.set(new Set());
+    this.passedQuizzes.set(new Set());
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(QUIZ_STORAGE_KEY);
   }
 
-  private loadFromStorage(): Set<string> {
+  private loadFromStorage(key: string): Set<string> {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(key);
       if (!raw) return new Set();
       const ids: string[] = JSON.parse(raw);
       return new Set(ids);
@@ -60,7 +77,7 @@ export class ProgressService {
     }
   }
 
-  private saveToStorage(set: Set<string>): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+  private saveToStorage(key: string, set: Set<string>): void {
+    localStorage.setItem(key, JSON.stringify([...set]));
   }
 }
