@@ -4,17 +4,17 @@ import { QuizLesson } from '../../models/content.model';
 @Component({
   selector: 'app-quiz-runner',
   template: `
-    <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+    <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 shadow-sm transition-colors duration-300">
       <div class="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p class="text-xs font-medium uppercase tracking-wider text-violet-400">
+          <p class="text-xs font-medium uppercase tracking-wider text-violet-600 dark:text-violet-400">
             Quiz {{ quiz().order }}
           </p>
-          <h3 class="text-lg font-semibold text-white">{{ quiz().title }}</h3>
-          <p class="mt-1 text-sm text-slate-400">{{ quiz().description }}</p>
+          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ quiz().title }}</h3>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ quiz().description }}</p>
         </div>
         @if (passed()) {
-          <span class="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400 ring-1 ring-emerald-500/30">
+          <span class="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-500/30">
             Đã đạt ✓
           </span>
         }
@@ -23,16 +23,17 @@ import { QuizLesson } from '../../models/content.model';
       @if (!submitted()) {
         <div class="space-y-5">
           @for (q of quiz().questions; track q.id; let qi = $index) {
-            <fieldset class="rounded-lg border border-slate-700/80 p-4">
-              <legend class="mb-3 text-sm font-medium text-white">
+            <fieldset class="rounded-lg border border-slate-200 dark:border-slate-700/80 p-4 transition-colors">
+              <legend class="mb-3 text-sm font-medium text-slate-900 dark:text-white">
                 {{ qi + 1 }}. {{ q.question }}
               </legend>
               <div class="space-y-2">
                 @for (opt of q.options; track opt.id) {
                   <label
-                    class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-700 px-3 py-2 transition hover:border-slate-500"
+                    class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 transition hover:border-slate-300 dark:hover:border-slate-500"
                     [class.border-violet-500]="answers()[q.id] === opt.id"
-                    [class.bg-violet-500/10]="answers()[q.id] === opt.id"
+                    [class.bg-violet-50/50]="answers()[q.id] === opt.id"
+                    [class.dark:bg-violet-500/10]="answers()[q.id] === opt.id"
                   >
                     <input
                       type="radio"
@@ -40,9 +41,9 @@ import { QuizLesson } from '../../models/content.model';
                       [value]="opt.id"
                       [checked]="answers()[q.id] === opt.id"
                       (change)="selectAnswer(q.id, opt.id)"
-                      class="accent-violet-500"
+                      class="accent-violet-600 dark:accent-violet-500"
                     />
-                    <span class="text-sm text-slate-300">{{ opt.text }}</span>
+                    <span class="text-sm text-slate-700 dark:text-slate-300">{{ opt.text }}</span>
                   </label>
                 }
               </div>
@@ -62,12 +63,12 @@ import { QuizLesson } from '../../models/content.model';
         <div class="space-y-4">
           <div
             class="rounded-lg p-4 text-center"
-            [class]="passed() ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-rose-500/10 border border-rose-500/30'"
+            [class]="passed() ? 'bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30' : 'bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30'"
           >
-            <p class="text-2xl font-bold" [class]="passed() ? 'text-emerald-400' : 'text-rose-400'">
+            <p class="text-2xl font-bold" [class]="passed() ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
               {{ score() }}/{{ quiz().questions.length }}
             </p>
-            <p class="mt-1 text-sm text-slate-400">
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
               @if (passed()) {
                 Đạt yêu cầu (cần ≥ {{ quiz().passingScore }} đúng)
               } @else {
@@ -77,11 +78,11 @@ import { QuizLesson } from '../../models/content.model';
           </div>
 
           @for (q of quiz().questions; track q.id) {
-            <div class="rounded-lg border border-slate-700 p-4">
-              <p class="mb-2 text-sm font-medium text-white">{{ q.question }}</p>
+            <div class="rounded-lg border border-slate-200 dark:border-slate-700 p-4 transition-colors">
+              <p class="mb-2 text-sm font-medium text-slate-900 dark:text-white">{{ q.question }}</p>
               <p
                 class="text-sm"
-                [class]="answers()[q.id] === q.correctOptionId ? 'text-emerald-400' : 'text-rose-400'"
+                [class]="answers()[q.id] === q.correctOptionId ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'"
               >
                 @if (answers()[q.id] === q.correctOptionId) {
                   ✓ Đúng
@@ -89,14 +90,14 @@ import { QuizLesson } from '../../models/content.model';
                   ✗ Sai — đáp án đúng: {{ correctLabel(q) }}
                 }
               </p>
-              <p class="mt-2 text-xs text-slate-500">{{ q.explanation }}</p>
+              <p class="mt-2 text-xs text-slate-500 dark:text-slate-500">{{ q.explanation }}</p>
             </div>
           }
 
           <button
             type="button"
             (click)="retry()"
-            class="text-sm text-violet-400 underline-offset-2 hover:underline"
+            class="text-sm text-violet-600 dark:text-violet-400 underline-offset-2 hover:underline"
           >
             Làm lại quiz này
           </button>

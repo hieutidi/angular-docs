@@ -7,16 +7,16 @@ import { CodeEditorComponent } from '../code-editor/code-editor.component';
   selector: 'app-code-lab',
   imports: [CodeEditorComponent],
   template: `
-    <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5">
+    <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 shadow-sm transition-colors duration-300">
       <div class="mb-4 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p class="text-xs font-medium uppercase tracking-wider text-sky-400">Thực hành code</p>
-          <h3 class="text-lg font-semibold text-white">{{ exercise().title }}</h3>
-          <p class="mt-1 text-sm text-slate-400">{{ exercise().instructions }}</p>
+          <p class="text-xs font-medium uppercase tracking-wider text-sky-600 dark:text-sky-400">Thực hành code</p>
+          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ exercise().title }}</h3>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ exercise().instructions }}</p>
         </div>
         @if (completed()) {
           <span
-            class="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400 ring-1 ring-emerald-500/30"
+            class="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-500/30"
           >
             Đã hoàn thành ✓
           </span>
@@ -40,7 +40,7 @@ import { CodeEditorComponent } from '../code-editor/code-editor.component';
         <button
           type="button"
           (click)="resetCode()"
-          class="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 transition hover:border-slate-500 hover:text-white"
+          class="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
         >
           Đặt lại
         </button>
@@ -48,7 +48,7 @@ import { CodeEditorComponent } from '../code-editor/code-editor.component';
           <button
             type="button"
             (click)="showHints.update((v) => !v)"
-            class="rounded-lg border border-amber-500/40 px-4 py-2 text-sm text-amber-400 transition hover:bg-amber-500/10"
+            class="rounded-lg border border-amber-500/40 px-4 py-2 text-sm text-amber-700 dark:text-amber-400 transition hover:bg-amber-500/10"
           >
             {{ showHints() ? 'Ẩn gợi ý' : 'Gợi ý' }}
           </button>
@@ -56,25 +56,25 @@ import { CodeEditorComponent } from '../code-editor/code-editor.component';
       </div>
 
       @if (showHints() && exercise().hints?.length) {
-        <ul class="mt-3 space-y-1 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+        <ul class="mt-3 space-y-1 rounded-lg border border-amber-500/20 bg-amber-50 dark:bg-amber-500/5 p-3">
           @for (hint of exercise().hints; track hint) {
-            <li class="text-sm text-amber-200/80">💡 {{ hint }}</li>
+            <li class="text-sm text-amber-800 dark:text-amber-200/80">💡 {{ hint }}</li>
           }
         </ul>
       }
 
       @if (checked()) {
         <div class="mt-4 space-y-2">
-          <p class="text-sm font-medium text-white">
+          <p class="text-sm font-medium text-slate-900 dark:text-white">
             Kết quả: {{ passedCount() }}/{{ results().length }} tiêu chí
           </p>
           @for (result of results(); track result.check.id) {
             <div
-              class="flex items-start gap-2 rounded-lg border px-3 py-2 text-sm"
+              class="flex items-start gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
               [class]="
                 result.passed
-                  ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-300'
-                  : 'border-rose-500/30 bg-rose-500/5 text-rose-300'
+                  ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/5 text-emerald-700 dark:text-emerald-300'
+                  : 'border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/5 text-rose-700 dark:text-rose-300'
               "
             >
               <span>{{ result.passed ? '✓' : '✗' }}</span>
@@ -83,11 +83,11 @@ import { CodeEditorComponent } from '../code-editor/code-editor.component';
           }
 
           @if (allPassed()) {
-            <p class="text-center text-sm font-medium text-emerald-400">
+            <p class="text-center text-sm font-medium text-emerald-600 dark:text-emerald-400">
               Tuyệt vời! Bạn đã hoàn thành bài thực hành này.
             </p>
           } @else {
-            <p class="text-center text-sm text-slate-400">
+            <p class="text-center text-sm text-slate-600 dark:text-slate-400">
               Sửa code và bấm "Kiểm tra code" lại nhé.
             </p>
           }

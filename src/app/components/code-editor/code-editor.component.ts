@@ -7,6 +7,8 @@ import {
   input,
   model,
   viewChild,
+  inject,
+  effect,
 } from '@angular/core';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { csharp } from '@codemirror/legacy-modes/mode/clike';
@@ -22,11 +24,12 @@ import {
   lineNumbers,
 } from '@codemirror/view';
 import { CodeLanguage } from '../../models/content.model';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-code-editor',
   encapsulation: ViewEncapsulation.None,
-  template: `<div #host class="code-editor-host"></div>`,
+  template: `<div #host class="code-editor-host border border-slate-200 dark:border-slate-800"></div>`,
   styles: `
     .code-editor-host {
       min-height: 220px;
@@ -44,7 +47,6 @@ import { CodeLanguage } from '../../models/content.model';
     }
 
     .code-editor-host .cm-gutters {
-      background: #0f172a;
       border-right: 1px solid #334155;
     }
   `,
@@ -54,13 +56,26 @@ export class CodeEditorComponent implements AfterViewInit, OnDestroy {
   readonly language = input<CodeLanguage>('typescript');
   readonly readOnly = input(false);
 
+  private readonly themeService = inject(ThemeService);
   private readonly host = viewChild.required<ElementRef<HTMLDivElement>>('host');
   private view?: EditorView;
+
+  constructor() {
+    effect(() => {
+      const theme = this.themeService.theme();
+      if (this.view) {
+        this.view.setState(EditorState.create({
+          doc: this.code(),
+          extensions: this.buildExtensions(this.language(), this.readOnly(), theme),
+        }));
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     const state = EditorState.create({
       doc: this.code(),
-      extensions: this.buildExtensions(this.language(), this.readOnly()),
+      extensions: this.buildExtensions(this.language(), this.readOnly(), this.themeService.theme()),
     });
 
     this.view = new EditorView({
@@ -87,25 +102,41 @@ export class CodeEditorComponent implements AfterViewInit, OnDestroy {
     this.code.set(value);
   }
 
-  private buildExtensions(language: CodeLanguage, readOnly: boolean): Extension[] {
-    return [
+  private buildExtensions(language: CodeLanguage, readOnly: boolean, theme: 'light' | 'dark'): Extension[] {
+    const extensions: Extension[] = [
       lineNumbers(),
       highlightActiveLine(),
       highlightActiveLineGutter(),
       history(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
-      oneDark,
       this.languageExtension(language),
       EditorView.editable.of(!readOnly),
-      EditorView.theme({
+    ];
+
+    if (theme === 'dark') {
+      extensions.push(oneDark);
+      extensions.push(EditorView.theme({
         '&': { backgroundColor: '#020617' },
+        '.cm-gutters': { background: '#0f172a', color: '#64748b' },
         '.cm-content': { caretColor: '#a78bfa' },
         '&.cm-focused .cm-cursor': { borderLeftColor: '#a78bfa' },
         '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {
           backgroundColor: '#4c1d95 !important',
         },
-      }),
-    ];
+      }));
+    } else {
+      extensions.push(EditorView.theme({
+        '&': { backgroundColor: '#f8fafc', color: '#0f172a' },
+        '.cm-gutters': { background: '#f1f5f9', color: '#94a3b8' },
+        '.cm-content': { caretColor: '#7c3aed' },
+        '&.cm-focused .cm-cursor': { borderLeftColor: '#7c3aed' },
+        '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {
+          backgroundColor: '#ddd6fe !important',
+        },
+      }));
+    }
+
+    return extensions;
   }
 
   private languageExtension(language: CodeLanguage): Extension {

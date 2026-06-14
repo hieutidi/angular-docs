@@ -130,7 +130,7 @@ export const COMPONENTS_QUIZZES: TopicQuizzes = {
           question: 'Muốn render danh sách todo với key ổn định — dùng?',
           options: [
             { id: 'a', text: '@for (t of todos(); track t.id)' },
-            { id: 'b', text: '*ngFor without trackBy' },
+            { id: 'b', text: '@for without track' },
             { id: 'c', text: '@if only' },
             { id: 'd', text: 'document.querySelectorAll' },
           ],

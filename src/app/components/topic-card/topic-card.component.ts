@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { RoadmapTrack } from '../../models/track.model';
 import { Topic } from '../../models/roadmap.model';
@@ -10,9 +10,9 @@ const LEVEL_LABELS: Record<Topic['level'], string> = {
 };
 
 const LEVEL_STYLES: Record<Topic['level'], string> = {
-  beginner: 'bg-emerald-500/15 text-emerald-400 ring-emerald-500/30',
-  intermediate: 'bg-amber-500/15 text-amber-400 ring-amber-500/30',
-  advanced: 'bg-rose-500/15 text-rose-400 ring-rose-500/30',
+  beginner: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-500/30',
+  intermediate: 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30',
+  advanced: 'bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-400 ring-rose-200 dark:ring-rose-500/30',
 };
 
 @Component({
@@ -20,10 +20,11 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
   imports: [RouterLink],
   template: `
     <article
-      class="group rounded-xl border border-slate-800 bg-slate-900/50 p-4 transition hover:border-slate-700 hover:bg-slate-900"
+      class="group rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4 transition hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900 shadow-sm"
       [class.ring-1]="completed()"
       [class.ring-emerald-500/40]="completed()"
-      [class.border-emerald-800/50]="completed()"
+      [class.border-emerald-300]="completed()"
+      [class.dark:border-emerald-800/50]="completed()"
     >
       <div class="flex items-start gap-3">
         <button
@@ -34,7 +35,7 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
           [class]="
             completed()
               ? 'border-emerald-500 bg-emerald-500 text-white'
-              : 'border-slate-600 hover:border-slate-400'
+              : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-400'
           "
         >
           @if (completed()) {
@@ -48,10 +49,11 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
           <div class="mb-1 flex flex-wrap items-center gap-2">
             <a
               [routerLink]="['/', track(), 'phase', phaseId(), 'topic', topic().id]"
-              class="font-medium text-white transition"
+              class="font-medium text-slate-900 dark:text-white transition"
               [class]="linkHover()"
               [class.line-through]="completed()"
-              [class.text-slate-500]="completed()"
+              [class.text-slate-400]="completed()"
+              [class.dark:text-slate-500]="completed()"
             >
               {{ topic().title }}
             </a>
@@ -71,7 +73,7 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
             </span>
             <span class="text-xs text-slate-500">{{ topic().duration }}</span>
           </div>
-          <p class="text-sm leading-relaxed text-slate-400">{{ topic().description }}</p>
+          <p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">{{ topic().description }}</p>
 
           <a
             [routerLink]="['/', track(), 'phase', phaseId(), 'topic', topic().id]"
@@ -88,10 +90,10 @@ const LEVEL_STYLES: Record<Topic['level'], string> = {
                   [href]="res.url"
                   target="_blank"
                   rel="noopener"
-                  class="inline-flex items-center gap-1 rounded-md bg-slate-800 px-2.5 py-1 text-xs text-slate-300 transition hover:bg-slate-700 hover:text-white"
+                  class="inline-flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300 transition hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                 >
                   {{ res.label }}
-                  <span class="text-slate-500">↗</span>
+                  <span class="text-slate-400 dark:text-slate-500">↗</span>
                 </a>
               }
             </div>
@@ -109,33 +111,29 @@ export class TopicCardComponent {
   readonly featured = input(false);
   readonly toggle = output<void>();
 
-  protected levelLabel(): string {
-    return LEVEL_LABELS[this.topic().level];
-  }
+  protected readonly levelLabel = computed(() => LEVEL_LABELS[this.topic().level]);
 
-  protected levelStyle(): string {
-    return LEVEL_STYLES[this.topic().level];
-  }
+  protected readonly levelStyle = computed(() => LEVEL_STYLES[this.topic().level]);
 
-  protected linkHover(): string {
-    return this.track() === 'dotnet' ? 'hover:text-violet-400' : 'hover:text-red-400';
-  }
+  protected readonly linkHover = computed(() =>
+    this.track() === 'dotnet' ? 'hover:text-violet-600 dark:hover:text-violet-400' : 'hover:text-red-600 dark:hover:text-red-400',
+  );
 
-  protected linkAccent(): string {
-    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
-  }
+  protected readonly linkAccent = computed(() =>
+    this.track() === 'dotnet' ? 'text-violet-600 dark:text-violet-400' : 'text-red-600 dark:text-red-400',
+  );
 
-  protected featuredBadge(): string {
+  protected readonly featuredBadge = computed(() => {
     if (
       (this.track() === 'angular' && this.topic().id === 'components') ||
       (this.track() === 'dotnet' && this.topic().id === 'webapi-basics')
     ) {
-      return 'bg-violet-500/15 text-violet-400';
+      return 'bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400';
     }
-    return 'bg-sky-500/15 text-sky-400';
-  }
+    return 'bg-sky-100 dark:bg-sky-500/15 text-sky-600 dark:text-sky-400';
+  });
 
-  protected featuredLabel(): string {
+  protected readonly featuredLabel = computed(() => {
     if (
       (this.track() === 'angular' && this.topic().id === 'components') ||
       (this.track() === 'dotnet' && this.topic().id === 'webapi-basics')
@@ -143,5 +141,5 @@ export class TopicCardComponent {
       return 'IDE + quiz';
     }
     return 'bài học chi tiết';
-  }
+  });
 }

@@ -98,7 +98,7 @@ export const ANGULAR_ROADMAP: Roadmap = {
         {
           id: 'data-binding',
           title: 'Data Binding & Directives',
-          description: 'Interpolation, property/event binding, two-way binding, *ngIf, *ngFor, ngClass, ngStyle.',
+          description: 'Interpolation, property/event binding, two-way binding, @if, @for, ngClass, ngStyle.',
           duration: '3–4 ngày',
           level: 'beginner',
           resources: [

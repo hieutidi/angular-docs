@@ -12,20 +12,20 @@ import { RoadmapService } from '../../services/roadmap.service';
   imports: [RouterLink, DocViewerComponent, CodeLabComponent, QuizRunnerComponent],
   template: `
     @if (context(); as ctx) {
-      <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+      <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12 transition-colors duration-300">
         <a
           [routerLink]="['/', track(), 'phase', ctx.phase.id]"
-          class="mb-6 inline-flex items-center gap-1 text-sm text-slate-400 transition hover:text-white"
+          class="mb-6 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition hover:text-slate-900 dark:hover:text-white"
         >
           ← Quay lại {{ ctx.phase.title }}
         </a>
 
         <header class="mb-8">
-          <p class="mb-1 text-xs text-slate-500">
+          <p class="mb-1 text-xs text-slate-500 dark:text-slate-500">
             Giai đoạn {{ ctx.phase.order }} · {{ ctx.topic.duration }} · {{ ctx.topic.level }}
           </p>
-          <h1 class="text-2xl font-bold text-white sm:text-3xl">{{ ctx.topic.title }}</h1>
-          <p class="mt-2 text-slate-400">{{ ctx.topic.description }}</p>
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{{ ctx.topic.title }}</h1>
+          <p class="mt-2 text-slate-600 dark:text-slate-400">{{ ctx.topic.description }}</p>
 
           @if (ctx.topic.resources.length > 0) {
             <div class="mt-4 flex flex-wrap gap-2">
@@ -34,7 +34,7 @@ import { RoadmapService } from '../../services/roadmap.service';
                   [href]="res.url"
                   target="_blank"
                   rel="noopener"
-                  class="inline-flex items-center gap-1 rounded-md bg-slate-800 px-2.5 py-1 text-xs text-slate-300 transition hover:bg-slate-700 hover:text-white"
+                  class="inline-flex items-center gap-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white shadow-sm"
                 >
                   {{ res.label }} ↗
                 </a>
@@ -45,34 +45,34 @@ import { RoadmapService } from '../../services/roadmap.service';
 
         @if (lesson(); as doc) {
           <div class="mb-4 flex items-center gap-2">
-            <span class="text-sm font-medium text-white">Nội dung bài học</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">Nội dung bài học</span>
             @if (codeExercises().length > 0) {
-              <span class="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-sky-400">
+              <span class="rounded-full bg-sky-100 dark:bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-sky-600 dark:text-sky-400">
                 + IDE thực hành
               </span>
             }
             @if (quizzes()) {
-              <span class="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-violet-400">
+              <span class="rounded-full bg-violet-100 dark:bg-violet-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-violet-600 dark:text-violet-400">
                 + 3 quiz
               </span>
             }
             @if (featuredLesson() && !quizzes()) {
-              <span class="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-sky-400">
+              <span class="rounded-full bg-sky-100 dark:bg-sky-500/15 px-2 py-0.5 text-[10px] font-medium uppercase text-sky-600 dark:text-sky-400">
                 bài học chi tiết
               </span>
             }
           </div>
           <app-doc-viewer [lesson]="doc" />
         } @else {
-          <p class="rounded-xl border border-slate-800 bg-slate-900/50 p-5 text-sm text-slate-400">
+          <p class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 text-sm text-slate-600 dark:text-slate-400">
             Tài liệu cho chủ đề này đang được cập nhật.
           </p>
         }
 
         @if (codeExercises().length > 0) {
           <div class="mt-10">
-            <h2 class="mb-2 text-xl font-semibold text-white">💻 Thực hành viết code</h2>
-            <p class="mb-6 text-sm text-slate-400">
+            <h2 class="mb-2 text-xl font-semibold text-slate-900 dark:text-white">💻 Thực hành viết code</h2>
+            <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
               Viết code trong IDE, bấm "Kiểm tra code" để hệ thống chấm tự động theo từng tiêu chí.
             </p>
             <div class="space-y-6">
@@ -89,8 +89,8 @@ import { RoadmapService } from '../../services/roadmap.service';
 
         @if (quizzes(); as qz) {
           <div class="mt-10">
-            <h2 class="mb-2 text-xl font-semibold text-white">📝 3 bài Quiz</h2>
-            <p class="mb-6 text-sm text-slate-400">
+            <h2 class="mb-2 text-xl font-semibold text-slate-900 dark:text-white">📝 3 bài Quiz</h2>
+            <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
               Làm lần lượt 3 quiz sau khi đọc bài học. Đạt ≥ {{ qz.lessons[0].passingScore }}/3 mỗi bài để hoàn
               thành.
             </p>
@@ -105,8 +105,8 @@ import { RoadmapService } from '../../services/roadmap.service';
             </div>
 
             @if (allQuizzesPassed() && allCodeLabsPassed()) {
-              <div class="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
-                <p class="font-medium text-emerald-400">
+              <div class="mt-6 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-center">
+                <p class="font-medium text-emerald-600 dark:text-emerald-400">
                   Chúc mừng! Bạn đã hoàn thành quiz và bài thực hành code.
                 </p>
                 <button
@@ -122,14 +122,14 @@ import { RoadmapService } from '../../services/roadmap.service';
         }
 
         @if (!quizzes()) {
-          <div class="mt-8 rounded-xl border border-dashed border-slate-700 p-5 text-center">
-            <p class="text-sm text-slate-500">
+          <div class="mt-8 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-5 text-center">
+            <p class="text-sm text-slate-500 dark:text-slate-500">
               Chủ đề này có tài liệu tóm tắt. Ví dụ bài học chi tiết
               @if (track() === 'angular') {
                 xem tại
                 <a
                   routerLink="/angular/phase/angular-basics/topic/components"
-                  class="text-red-400 hover:underline"
+                  class="text-red-600 dark:text-red-400 hover:underline"
                 >
                   Components & Templates
                 </a>
@@ -138,7 +138,7 @@ import { RoadmapService } from '../../services/roadmap.service';
                 xem tại
                 <a
                   routerLink="/dotnet/phase/aspnet-core/topic/webapi-basics"
-                  class="text-violet-400 hover:underline"
+                  class="text-violet-600 dark:text-violet-400 hover:underline"
                 >
                   Web API & Controllers
                 </a>
@@ -149,8 +149,8 @@ import { RoadmapService } from '../../services/roadmap.service';
         }
       </section>
     } @else {
-      <section class="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p class="text-slate-400">Không tìm thấy chủ đề.</p>
+      <section class="mx-auto max-w-3xl px-4 py-16 text-center transition-colors duration-300">
+        <p class="text-slate-600 dark:text-slate-400">Không tìm thấy chủ đề.</p>
         <a [routerLink]="['/', track()]" class="mt-4 inline-block hover:underline" [class]="linkAccent()"
           >← Về trang chủ</a
         >
@@ -215,7 +215,7 @@ export class TopicDetailComponent {
     }
   }
 
-  protected linkAccent(): string {
-    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
-  }
+  protected readonly linkAccent = computed(() =>
+    this.track() === 'dotnet' ? 'text-violet-600 dark:text-violet-400' : 'text-red-600 dark:text-red-400',
+  );
 }
