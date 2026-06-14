@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "deploy": "ng build && npx firebase deploy",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -15,6 +16,7 @@
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
     "@angular/core": "^21.2.0",
+    "@angular/fire": "^20.0.1",
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
@@ -25,6 +27,7 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.43.1",
+    "firebase": "^12.14.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -33,6 +36,7 @@
     "@angular/cli": "^21.2.15",
     "@angular/compiler-cli": "^21.2.0",
     "@tailwindcss/postcss": "^4.1.12",
+    "firebase-tools": "^15.20.0",
     "jsdom": "^28.0.0",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",

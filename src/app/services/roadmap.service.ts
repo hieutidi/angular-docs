@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { PHASE_GUIDES } from '../data/phase-docs.data';
 import { DOTNET_PHASE_GUIDES } from '../data/dotnet-phase-docs.data';
 import { DOCS_PHASE_GUIDES } from '../data/docs-phase-docs.data';
+import { REACT_PHASE_GUIDES } from '../data/react-phase-docs.data';
 import { getTopicLesson, hasQuizzes } from '../data/topic-docs';
 import { COMPONENTS_QUIZZES } from '../data/topic-docs/components.quizzes';
 import {
@@ -16,6 +17,11 @@ import {
   docsHasFeaturedLesson,
   docsHasQuizzes,
 } from '../data/docs-topic-docs';
+import {
+  getReactTopicLesson,
+  reactHasFeaturedLesson,
+  reactHasQuizzes,
+} from '../data/react-topic-docs';
 import { PhaseGuide, TopicLesson, TopicQuizzes } from '../models/content.model';
 import { isRoadmapTrack, RoadmapTrack, TRACKS } from '../models/track.model';
 import { Phase, Roadmap, Topic } from '../models/roadmap.model';
@@ -37,12 +43,14 @@ export class RoadmapService {
   getPhaseGuide(track: RoadmapTrack, phaseId: string): PhaseGuide | undefined {
     if (track === 'dotnet') return DOTNET_PHASE_GUIDES.find((g) => g.phaseId === phaseId);
     if (track === 'docs') return DOCS_PHASE_GUIDES.find((g) => g.phaseId === phaseId);
+    if (track === 'react') return REACT_PHASE_GUIDES.find((g) => g.phaseId === phaseId);
     return PHASE_GUIDES.find((g) => g.phaseId === phaseId);
   }
 
   getTopicLesson(track: RoadmapTrack, topicId: string): TopicLesson | undefined {
     if (track === 'dotnet') return getDotnetTopicLesson(topicId);
     if (track === 'docs') return getDocsTopicLesson(topicId);
+    if (track === 'react') return getReactTopicLesson(topicId);
     return getTopicLesson(topicId);
   }
 
@@ -60,6 +68,7 @@ export class RoadmapService {
   hasFeaturedLesson(track: RoadmapTrack, topicId: string): boolean {
     if (track === 'dotnet') return dotnetHasFeaturedLesson(topicId);
     if (track === 'docs') return docsHasFeaturedLesson(topicId);
+    if (track === 'react') return reactHasFeaturedLesson(topicId);
     return topicId === 'components';
   }
 

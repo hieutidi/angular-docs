@@ -17,6 +17,7 @@ export interface ChangelogEntry {
 export interface TrackComparisonRow {
   aspect: string;
   angular: string;
+  react: string;
   dotnet: string;
 }
 

@@ -26,7 +26,7 @@ import { RoadmapService } from '../../services/roadmap.service';
           </h1>
           <p class="mx-auto max-w-2xl text-base text-slate-400 sm:text-lg">
             Lộ trình có thứ tự, mục tiêu rõ ràng, tài liệu tóm tắt và theo dõi tiến độ — bắt đầu từ
-            frontend Angular hoặc backend .NET.
+            frontend Angular/React hoặc backend .NET.
           </p>
         </div>
 

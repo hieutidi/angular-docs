@@ -5,7 +5,7 @@ export interface DocSection {
   code?: string;
 }
 
-export type CodeLanguage = 'typescript' | 'csharp' | 'sql' | 'shell';
+export type CodeLanguage = 'typescript' | 'csharp' | 'sql' | 'shell' | 'javascript';
 
 export interface CodeCheck {
   id: string;

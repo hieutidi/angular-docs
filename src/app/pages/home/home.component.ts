@@ -198,15 +198,15 @@ export class HomeComponent {
   }
 
   protected heroGradient(): string {
-    return this.track() === 'dotnet'
-      ? 'from-violet-900/20 via-slate-950 to-slate-950'
-      : 'from-red-900/20 via-slate-950 to-slate-950';
+    if (this.track() === 'dotnet') return 'from-violet-900/20 via-slate-950 to-slate-950';
+    if (this.track() === 'react') return 'from-blue-900/20 via-slate-950 to-slate-950';
+    return 'from-red-900/20 via-slate-950 to-slate-950';
   }
 
   protected timelineGradient(): string {
-    return this.track() === 'dotnet'
-      ? 'from-violet-500/50 via-sky-500/30 to-transparent'
-      : 'from-red-500/50 via-violet-500/30 to-transparent';
+    if (this.track() === 'dotnet') return 'from-violet-500/50 via-sky-500/30 to-transparent';
+    if (this.track() === 'react') return 'from-blue-500/50 via-blue-700/30 to-transparent';
+    return 'from-red-500/50 via-violet-500/30 to-transparent';
   }
 
   protected progressBar(): string {
@@ -214,15 +214,21 @@ export class HomeComponent {
   }
 
   protected accentDot(): string {
-    return this.track() === 'dotnet' ? 'bg-violet-500' : 'bg-red-500';
+    if (this.track() === 'dotnet') return 'bg-violet-500';
+    if (this.track() === 'react') return 'bg-blue-500';
+    return 'bg-red-500';
   }
 
   protected phaseHover(): string {
-    return this.track() === 'dotnet' ? 'group-hover:text-violet-300' : 'group-hover:text-red-300';
+    if (this.track() === 'dotnet') return 'group-hover:text-violet-300';
+    if (this.track() === 'react') return 'group-hover:text-blue-300';
+    return 'group-hover:text-red-300';
   }
 
   protected tipAccent(): string {
-    return this.track() === 'dotnet' ? 'text-violet-400' : 'text-red-400';
+    if (this.track() === 'dotnet') return 'text-violet-400';
+    if (this.track() === 'react') return 'text-blue-400';
+    return 'text-red-400';
   }
 
   protected studyTips(): string[] {
@@ -231,6 +237,14 @@ export class HomeComponent {
         'Code mỗi ngày — chạy dotnet run và test API bằng Swagger.',
         'Làm dự án mini sau mỗi giai đoạn, đừng chỉ đọc lý thuyết.',
         'Đọc docs chính thức tại learn.microsoft.com/dotnet.',
+        'Đánh dấu chủ đề đã học để theo dõi tiến độ của bạn.',
+      ];
+    }
+    if (this.track() === 'react') {
+      return [
+        'Học cách tư duy theo component — chia nhỏ UI nhất có thể.',
+        'Thực hành sử dụng Hooks một cách thành thạo, đặc biệt là useState và useEffect.',
+        'Đọc docs chính thức tại react.dev — rất dễ hiểu và đầy đủ.',
         'Đánh dấu chủ đề đã học để theo dõi tiến độ của bạn.',
       ];
     }

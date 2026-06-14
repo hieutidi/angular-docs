@@ -2,8 +2,9 @@ import { Roadmap } from './roadmap.model';
 import { ANGULAR_ROADMAP } from '../data/roadmap.data';
 import { DOTNET_ROADMAP } from '../data/dotnet-roadmap.data';
 import { DOCS_ROADMAP } from '../data/docs-roadmap.data';
+import { REACT_ROADMAP } from '../data/react-roadmap.data';
 
-export type RoadmapTrack = 'angular' | 'dotnet' | 'docs';
+export type RoadmapTrack = 'angular' | 'dotnet' | 'docs' | 'react';
 
 export interface TrackInfo {
   id: RoadmapTrack;
@@ -40,6 +41,17 @@ export const TRACKS: Record<RoadmapTrack, TrackInfo> = {
     docsUrl: 'https://learn.microsoft.com/dotnet',
     roadmap: DOTNET_ROADMAP,
   },
+  react: {
+    id: 'react',
+    label: 'React Roadmap',
+    shortLabel: 'React',
+    tagline: 'Frontend · Library · UI',
+    icon: 'R',
+    accentFrom: 'from-blue-400',
+    accentTo: 'to-blue-600',
+    docsUrl: 'https://react.dev',
+    roadmap: REACT_ROADMAP,
+  },
   docs: {
     id: 'docs',
     label: 'Technical Docs',
@@ -53,8 +65,8 @@ export const TRACKS: Record<RoadmapTrack, TrackInfo> = {
   },
 };
 
-export const TRACK_LIST: TrackInfo[] = [TRACKS.angular, TRACKS.dotnet, TRACKS.docs];
+export const TRACK_LIST: TrackInfo[] = [TRACKS.angular, TRACKS.react, TRACKS.dotnet, TRACKS.docs];
 
 export function isRoadmapTrack(value: string): value is RoadmapTrack {
-  return value === 'angular' || value === 'dotnet' || value === 'docs';
+  return value === 'angular' || value === 'dotnet' || value === 'docs' || value === 'react';
 }

@@ -16,7 +16,7 @@ export class ProgressService {
   private readonly quizzesByTrack = signal<ProgressStore>(this.loadQuizStore());
   private readonly codeLabsByTrack = signal<ProgressStore>(this.loadCodeLabStore());
 
-  constructor(private readonly roadmaps: RoadmapService) {}
+  constructor(private readonly roadmaps: RoadmapService) { }
 
   totalTopics(track: RoadmapTrack): number {
     return this.roadmaps.totalTopics(track);
@@ -101,9 +101,9 @@ export class ProgressService {
       return;
     }
 
-    this.completedByTrack.set({ angular: [], dotnet: [], docs: [] });
-    this.quizzesByTrack.set({ angular: [], dotnet: [], docs: [] });
-    this.codeLabsByTrack.set({ angular: [], dotnet: [], docs: [] });
+    this.completedByTrack.set({ angular: [], dotnet: [], docs: [], react: [] });
+    this.quizzesByTrack.set({ angular: [], dotnet: [], docs: [], react: [] });
+    this.codeLabsByTrack.set({ angular: [], dotnet: [], docs: [], react: [] });
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(QUIZ_STORAGE_KEY);
     localStorage.removeItem(CODE_STORAGE_KEY);
@@ -124,7 +124,7 @@ export class ProgressService {
   }
 
   private loadStore(key: string, legacyKey: string): ProgressStore {
-    const empty: ProgressStore = { angular: [], dotnet: [], docs: [] };
+    const empty: ProgressStore = { angular: [], dotnet: [], docs: [], react: [] };
     try {
       const raw = localStorage.getItem(key);
       if (raw) {
@@ -133,6 +133,7 @@ export class ProgressService {
           angular: parsed.angular ?? [],
           dotnet: parsed.dotnet ?? [],
           docs: parsed.docs ?? [],
+          react: parsed.react ?? [],
         };
       }
 

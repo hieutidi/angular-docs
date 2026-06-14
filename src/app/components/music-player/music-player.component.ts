@@ -28,6 +28,21 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <div class="p-4">
+          <!-- SDK Status Badge -->
+          <div *ngIf="spotify.isAuthenticated() && !showSettings" class="mb-3 flex items-center justify-between">
+            <span class="flex items-center gap-1.5 text-[10px] font-medium" [class.text-green-500]="spotify.deviceId()" [class.text-slate-500]="!spotify.deviceId()">
+              <span class="h-1.5 w-1.5 rounded-full" [class.bg-green-500]="spotify.deviceId()" [class.bg-slate-500]="!spotify.deviceId()"></span>
+              {{ spotify.deviceId() ? 'Đã kết nối trình duyệt' : 'Đang khởi tạo Player...' }}
+            </span>
+            <button 
+              *ngIf="!spotify.deviceId()" 
+              (click)="spotify.initializePlayer()" 
+              class="text-[9px] text-slate-400 hover:text-white underline"
+            >
+              Thử lại
+            </button>
+          </div>
+
           <!-- Settings Mode -->
           <div *ngIf="showSettings" class="space-y-3">
             <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Spotify Client ID</label>
@@ -135,7 +150,11 @@ export class MusicPlayerComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.spotify.handleAuth();
+    this.initAuth();
+  }
+
+  async initAuth() {
+    await this.spotify.handleAuth();
     if (this.spotify.isAuthenticated()) {
       this.updatePlayback();
     }
