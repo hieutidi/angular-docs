@@ -10,116 +10,135 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, DragDropModule, FormsModule],
   template: `
     <div class="fixed bottom-4 right-4 z-50 transition-colors duration-300" cdkDrag>
-      <div class="w-72 overflow-hidden rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-2xl backdrop-blur-md">
-        <!-- Header / Drag Handle -->
-        <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800/50 px-3 py-2 cursor-move" cdkDragHandle>
-          <div class="flex items-center gap-2">
-            <svg class="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.291c-.217.356-.677.472-1.033.255-2.85-1.741-6.439-2.134-10.665-1.168-.407.093-.815-.162-.908-.569-.093-.407.162-.815.569-.908 4.629-1.059 8.591-.61 11.782 1.339.356.218.472.678.255 1.051zm1.47-3.262c-.273.444-.853.584-1.297.31-3.262-2.004-8.23-2.585-12.086-1.415-.502.152-1.034-.131-1.186-.633-.152-.502.131-1.034.633-1.186 4.412-1.338 9.891-.689 13.626 1.603.444.273.584.853.31 1.297v.024zm.126-3.414c-3.911-2.321-10.363-2.535-14.129-1.391-.6.182-1.235-.164-1.417-.764-.182-.6.164-1.235.764-1.417 4.316-1.31 11.439-1.053 15.952 1.625.54.32.716 1.013.396 1.553-.32.54-1.013.716-1.553.396l-.013-.002z"/>
-            </svg>
-            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Spotify</span>
-          </div>
-          <button (click)="showSettings.set(!showSettings())" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="p-4">
-          <!-- SDK Status Badge -->
-          @if (spotify.isAuthenticated() && !showSettings()) {
-            <div class="mb-3 flex items-center justify-between">
-              <span class="flex items-center gap-1.5 text-[10px] font-medium" [class.text-green-600]="spotify.deviceId()" [class.dark:text-green-500]="spotify.deviceId()" [class.text-slate-400]="!spotify.deviceId()">
-                <span class="h-1.5 w-1.5 rounded-full" [class.bg-green-600]="spotify.deviceId()" [class.dark:bg-green-500]="spotify.deviceId()" [class.bg-slate-400]="!spotify.deviceId()"></span>
-                {{ spotify.deviceId() ? 'Đã kết nối trình duyệt' : 'Đang khởi tạo Player...' }}
-              </span>
-              @if (!spotify.deviceId()) {
-                <button 
-                  (click)="spotify.initializePlayer()" 
-                  class="text-[9px] text-slate-500 hover:text-slate-900 dark:hover:text-white underline"
-                >
-                  Thử lại
-                </button>
-              }
+      @if (!isExpanded()) {
+        <button
+          (click)="isExpanded.set(true)"
+          title="Mở Music Player"
+          class="flex h-12 w-12 items-center justify-center rounded-full bg-green-600 text-white shadow-xl hover:scale-110 hover:bg-green-500 transition-all cursor-pointer border-2 border-white dark:border-slate-800"
+        >
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+             <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.291c-.217.356-.677.472-1.033.255-2.85-1.741-6.439-2.134-10.665-1.168-.407.093-.815-.162-.908-.569-.093-.407.162-.815.569-.908 4.629-1.059 8.591-.61 11.782 1.339.356.218.472.678.255 1.051zm1.47-3.262c-.273.444-.853.584-1.297.31-3.262-2.004-8.23-2.585-12.086-1.415-.502.152-1.034-.131-1.186-.633-.152-.502.131-1.034.633-1.186 4.412-1.338 9.891-.689 13.626 1.603.444.273.584.853.31 1.297v.024zm.126-3.414c-3.911-2.321-10.363-2.535-14.129-1.391-.6.182-1.235-.164-1.417-.764-.182-.6.164-1.235.764-1.417 4.316-1.31 11.439-1.053 15.952 1.625.54.32.716 1.013.396 1.553-.32.54-1.013.716-1.553.396l-.013-.002z"/>
+          </svg>
+        </button>
+      } @else {
+        <div class="w-72 overflow-hidden rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-2xl backdrop-blur-md">
+          <!-- Header / Drag Handle -->
+          <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800/50 px-3 py-2 cursor-move" cdkDragHandle>
+            <div class="flex items-center gap-2">
+              <svg class="h-4 w-4 text-green-500" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.291c-.217.356-.677.472-1.033.255-2.85-1.741-6.439-2.134-10.665-1.168-.407.093-.815-.162-.908-.569-.093-.407.162-.815.569-.908 4.629-1.059 8.591-.61 11.782 1.339.356.218.472.678.255 1.051zm1.47-3.262c-.273.444-.853.584-1.297.31-3.262-2.004-8.23-2.585-12.086-1.415-.502.152-1.034-.131-1.186-.633-.152-.502.131-1.034.633-1.186 4.412-1.338 9.891-.689 13.626 1.603.444.273.584.853.31 1.297v.024zm.126-3.414c-3.911-2.321-10.363-2.535-14.129-1.391-.6.182-1.235-.164-1.417-.764-.182-.6.164-1.235.764-1.417 4.316-1.31 11.439-1.053 15.952 1.625.54.32.716 1.013.396 1.553-.32.54-1.013.716-1.553.396l-.013-.002z"/>
+              </svg>
+              <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Spotify</span>
             </div>
-          }
-
-          <!-- Settings Mode -->
-          @if (showSettings()) {
-            <div class="space-y-3">
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Spotify Client ID</label>
-              <input 
-                [ngModel]="tempClientId()"
-                (ngModelChange)="tempClientId.set($event)"
-                class="w-full rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-green-500"
-                placeholder="Nhập Client ID..."
-              />
-              <button 
-                (click)="saveSettings()"
-                class="w-full rounded bg-green-600 py-2 text-xs font-bold text-white hover:bg-green-500 transition-colors"
-              >
-                Lưu & Kết nối
+            <div class="flex items-center gap-2">
+              <button (click)="showSettings.set(!showSettings())" title="Cài đặt" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </button>
-              <p class="text-[9px] text-slate-500 text-center">Lấy tại developer.spotify.com</p>
+              <button (click)="isExpanded.set(false)" title="Thu gọn" class="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
-          } @else {
-            <!-- Player Mode -->
-            <div>
-              @if (!spotify.isAuthenticated()) {
-                <div class="text-center space-y-3 py-4">
-                  <p class="text-sm text-slate-600 dark:text-slate-400">Kết nối để nghe nhạc</p>
+          </div>
+
+          <div class="p-4">
+            <!-- SDK Status Badge -->
+            @if (spotify.isAuthenticated() && !showSettings()) {
+              <div class="mb-3 flex items-center justify-between">
+                <span class="flex items-center gap-1.5 text-[10px] font-medium" [class.text-green-600]="spotify.deviceId()" [class.dark:text-green-500]="spotify.deviceId()" [class.text-slate-400]="!spotify.deviceId()">
+                  <span class="h-1.5 w-1.5 rounded-full" [class.bg-green-600]="spotify.deviceId()" [class.dark:bg-green-500]="spotify.deviceId()" [class.bg-slate-400]="!spotify.deviceId()"></span>
+                  {{ spotify.deviceId() ? 'Đã kết nối trình duyệt' : 'Đang khởi tạo Player...' }}
+                </span>
+                @if (!spotify.deviceId()) {
                   <button 
-                    (click)="spotify.login()"
-                    class="rounded-full bg-green-600 px-6 py-2 text-xs font-bold text-white hover:bg-green-500 transition-colors"
+                    (click)="spotify.initializePlayer()" 
+                    class="text-[9px] text-slate-500 hover:text-slate-900 dark:hover:text-white underline"
                   >
-                    Đăng nhập Spotify
+                    Thử lại
                   </button>
-                </div>
-              } @else {
-                <div class="space-y-4">
-                  <!-- Song Info -->
-                  <div class="flex items-center gap-3">
-                    <img 
-                      [src]="currentTrack()?.album?.images[0]?.url || 'https://via.placeholder.com/64'" 
-                      class="h-12 w-12 rounded shadow-lg object-cover"
-                    />
-                    <div class="overflow-hidden">
-                      <h4 class="truncate text-sm font-semibold text-slate-900 dark:text-white">
-                        {{ currentTrack()?.name || 'Không có bài hát' }}
-                      </h4>
-                      <p class="truncate text-xs text-slate-500 dark:text-slate-400">
-                        {{ currentTrack()?.artists[0]?.name || 'Spotify' }}
-                      </p>
+                }
+              </div>
+            }
+
+            <!-- Settings Mode -->
+            @if (showSettings()) {
+              <div class="space-y-3">
+                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Spotify Client ID</label>
+                <input 
+                  [ngModel]="tempClientId()"
+                  (ngModelChange)="tempClientId.set($event)"
+                  class="w-full rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-green-500"
+                  placeholder="Nhập Client ID..."
+                />
+                <button 
+                  (click)="saveSettings()"
+                  class="w-full rounded bg-green-600 py-2 text-xs font-bold text-white hover:bg-green-500 transition-colors"
+                >
+                  Lưu & Kết nối
+                </button>
+                <p class="text-[9px] text-slate-500 text-center">Lấy tại developer.spotify.com</p>
+              </div>
+            } @else {
+              <!-- Player Mode -->
+              <div>
+                @if (!spotify.isAuthenticated()) {
+                  <div class="text-center space-y-3 py-4">
+                    <p class="text-sm text-slate-600 dark:text-slate-400">Kết nối để nghe nhạc</p>
+                    <button 
+                      (click)="spotify.login()"
+                      class="rounded-full bg-green-600 px-6 py-2 text-xs font-bold text-white hover:bg-green-500 transition-colors"
+                    >
+                      Đăng nhập Spotify
+                    </button>
+                  </div>
+                } @else {
+                  <div class="space-y-4">
+                    <!-- Song Info -->
+                    <div class="flex items-center gap-3">
+                      <img 
+                        [src]="currentTrack()?.album?.images[0]?.url || 'https://via.placeholder.com/64'" 
+                        class="h-12 w-12 rounded shadow-lg object-cover"
+                      />
+                      <div class="overflow-hidden">
+                        <h4 class="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                          {{ currentTrack()?.name || 'Không có bài hát' }}
+                        </h4>
+                        <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+                          {{ currentTrack()?.artists[0]?.name || 'Spotify' }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex items-center justify-center gap-6">
+                      <button (click)="spotify.previous()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18V6h2v12H6zm3.5-6L18 6v12l-8.5-6z"/></svg>
+                      </button>
+                      <button 
+                        (click)="togglePlay()"
+                        class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-transform shadow-md"
+                      >
+                        @if (isPlaying()) {
+                          <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        } @else {
+                          <svg class="ml-1 h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        }
+                      </button>
+                      <button (click)="spotify.next()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 18V6h2v12h-2zM6 18V6l8.5 6L6 18z"/></svg>
+                      </button>
                     </div>
                   </div>
-
-                  <!-- Controls -->
-                  <div class="flex items-center justify-center gap-6">
-                    <button (click)="spotify.previous()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18V6h2v12H6zm3.5-6L18 6v12l-8.5-6z"/></svg>
-                    </button>
-                    <button 
-                      (click)="togglePlay()"
-                      class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-black hover:scale-105 transition-transform shadow-md"
-                    >
-                      @if (isPlaying()) {
-                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                      } @else {
-                        <svg class="ml-1 h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                      }
-                    </button>
-                    <button (click)="spotify.next()" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 18V6h2v12h-2zM6 18V6l8.5 6L6 18z"/></svg>
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-          }
+                }
+              </div>
+            }
+          </div>
         </div>
-      </div>
+      }
     </div>
   `,
   styles: [`
@@ -142,6 +161,7 @@ import { FormsModule } from '@angular/forms';
 export class MusicPlayerComponent implements OnInit {
   spotify = inject(SpotifyService);
   
+  isExpanded = signal(false);
   showSettings = signal(false);
   tempClientId = signal('');
   

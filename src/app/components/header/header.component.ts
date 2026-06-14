@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { map } from 'rxjs';
@@ -30,7 +30,7 @@ import { filter } from 'rxjs';
           </div>
         </a>
 
-        <nav class="flex items-center gap-1 sm:gap-2">
+        <nav class="hidden items-center gap-1 md:flex lg:gap-2">
           <a
             routerLink="/"
             routerLinkActive="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -112,7 +112,7 @@ import { filter } from 'rxjs';
           >
         </nav>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <!-- Theme Toggle -->
           <button
             (click)="theme.toggleTheme()"
@@ -137,7 +137,7 @@ import { filter } from 'rxjs';
                 {{ progress.overallProgress(current.id) }}%
               </p>
             </div>
-            <div class="h-2 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800 sm:w-24">
+            <div class="hidden h-2 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800 sm:block sm:w-24">
               <div
                 class="h-full rounded-full bg-gradient-to-r transition-all duration-500"
                 [class]="current.accentFrom + ' ' + current.accentTo"
@@ -145,12 +145,68 @@ import { filter } from 'rxjs';
               ></div>
             </div>
           }
+
+          <!-- Mobile Menu Button -->
+          <button
+            (click)="isMobileMenuOpen.update(v => !v)"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 transition hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-900 dark:hover:text-white md:hidden"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
         </div>
       </div>
+
+      <!-- Mobile Menu Dropdown -->
+      @if (isMobileMenuOpen()) {
+        <div class="border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 px-4 py-4 md:hidden">
+          <nav class="flex flex-col gap-2">
+            <a
+              routerLink="/"
+              routerLinkActive="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+              [routerLinkActiveOptions]="{ exact: true }"
+              (click)="isMobileMenuOpen.set(false)"
+              class="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
+            >
+              Hub
+            </a>
+            @for (t of roadmapTracks; track t.id) {
+              <a
+                [routerLink]="['/', t.id]"
+                routerLinkActive="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                (click)="isMobileMenuOpen.set(false)"
+                class="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
+              >
+                {{ t.label }}
+              </a>
+            }
+            @if (docsTrack; as t) {
+              <a
+                [routerLink]="['/', t.id]"
+                routerLinkActive="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                (click)="isMobileMenuOpen.set(false)"
+                class="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
+              >
+                Docs (Tài liệu)
+              </a>
+            }
+            <a
+              routerLink="/about"
+              routerLinkActive="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+              (click)="isMobileMenuOpen.set(false)"
+              class="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white"
+            >
+              Về dự án
+            </a>
+          </nav>
+        </div>
+      }
     </header>
   `,
 })
 export class HeaderComponent {
+  protected readonly isMobileMenuOpen = signal(false);
   protected readonly theme = inject(ThemeService);
   protected readonly tracks = TRACK_LIST;
   protected readonly roadmapTracks = TRACK_LIST.filter((t) => t.id !== 'docs');
