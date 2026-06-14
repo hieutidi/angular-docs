@@ -1,4 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
 import { PHASE_GUIDES } from '../data/phase-docs.data';
 import { DOTNET_PHASE_GUIDES } from '../data/dotnet-phase-docs.data';
 import { DOCS_PHASE_GUIDES } from '../data/docs-phase-docs.data';
@@ -28,12 +31,27 @@ import { Phase, Roadmap, Topic } from '../models/roadmap.model';
 
 @Injectable({ providedIn: 'root' })
 export class RoadmapService {
+  private http = inject(HttpClient);
+  private apiUrl = 'https://localhost:7021/api/roadmaps'; // C# API URL
+
   getTrack(track: RoadmapTrack) {
     return TRACKS[track];
   }
 
+  // Returns roadmap from local data, fallback if API is not used for this specific call
   getRoadmap(track: RoadmapTrack): Roadmap {
     return TRACKS[track].roadmap;
+  }
+
+  // New method to fetch from C# API
+  getRoadmapFromApi(track: RoadmapTrack): Observable<Roadmap> {
+    return this.http.get<Roadmap>(`${this.apiUrl}/${track}`).pipe(
+      tap(data => console.log('Fetched from API:', data)),
+      catchError(err => {
+        console.error('API failed, fallback to local data', err);
+        return of(this.getRoadmap(track));
+      })
+    );
   }
 
   isValidTrack(value: string): value is RoadmapTrack {
